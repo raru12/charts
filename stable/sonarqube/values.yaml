@@ -4,13 +4,21 @@
 replicaCount: 1
 image:
   repository: sonarqube
-  tag: 6.7.3
+  tag: 7.4-community
+  # If using a private repository, the name of the imagePullSecret to use
+  # pullSecret: my-repo-secret
+
+# Set security context for sonarqube pod
+securityContext:
+  fsGroup: 999
+
 service:
   name: sonarqube
   type: LoadBalancer
   externalPort: 9000
   internalPort: 9000
-  annotations:
+  labels:
+  annotations: {}
   # May be used in example for internal load balancing in GCP:
   # cloud.google.com/load-balancer-type: Internal
   loadBalancerSourceRanges:
@@ -21,10 +29,12 @@ ingress:
   # Used to create an Ingress record.
   hosts:
     - sonar.organization.com
-  annotations:
+  annotations: {}
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
-  tls:
+  # This property allows for reports up to a certain size to be uploaded to SonarQube
+  # nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+  tls: {}
   # Secrets must be manually created in the namespace.
   # - secretName: chart-example-tls
   #   hosts:
@@ -42,13 +52,22 @@ tolerations: []
 # Ref: https://kubernetes.io/docs/user-guide/node-selection/
 nodeSelector: {}
 
+# hostAliases allows the modification of the hosts file inside a container
+hostAliases: []
+# - ip: "192.168.1.10"
+#   hostnames:
+#   - "example.com"
+#   - "www.example.com"
+
 readinessProbe:
   initialDelaySeconds: 60
   periodSeconds: 30
   failureThreshold: 6
+  sonarWebContext: /
 livenessProbe:
   initialDelaySeconds: 60
   periodSeconds: 30
+  sonarWebContext: /
 
 # Set extra env variables. Like proxy settings.
 extraEnv: {}
@@ -96,7 +115,7 @@ plugins:
 #   ldap.url=ldaps://organization.com
 
 ## Configuration value to select database type
-## Option to use "postgresql" or "mysql" database type, by default "postgresql" is choosen
+## Option to use "postgresql" or "mysql" database type, by default "postgresql" is chosen
 ## Set the "enable" field to true of the database type you select (if you want to use internal database) and false of the one you don't select
 database:
   type: "postgresql"
@@ -109,6 +128,10 @@ postgresql:
   # To use an external PostgreSQL instance, set enabled to false and uncomment
   # the line below:
   # postgresServer: ""
+  # To use an external secret for the password for an external PostgreSQL
+  # instance, set enabled to false and provide the name of the secret on the
+  # line below:
+  # postgresPasswordSecret: ""
   postgresUser: "sonarUser"
   postgresPassword: "sonarPass"
   postgresDatabase: "sonarDB"
@@ -125,9 +148,14 @@ mysql:
   # To use an external mySQL instance, set enabled to false and uncomment
   # the line below:
   # mysqlServer: ""
+  # To use an external secret for the password for an external mySQL instance,
+  # set enabled to false and provide the name of the secret on the line below:
+  # mysqlPasswordSecret: ""
   mysqlUser: "sonarUser"
   mysqlPassword: "sonarPass"
   mysqlDatabase: "sonarDB"
+  # mysqlParams:
+  #   useSSL: "true"
   # Specify the TCP port that mySQL should use
   service:
     port: 3306

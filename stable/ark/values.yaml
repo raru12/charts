@@ -1,14 +1,7 @@
 image:
   repository: gcr.io/heptio-images/ark
-  tag: v0.8.2
+  tag: v0.9.1
   pullPolicy: IfNotPresent
-
-# A docker image with kubectl installed
-kubectl:
-  image:
-    repository: claranet/gcloud-kubectl-docker
-    tag: 1.0.0
-    pullPolicy: IfNotPresent
 
 # Only kube2iam: change the AWS_ACCOUNT_ID and HEPTIO_ARK_ROLE_NAME
 podAnnotations: {}
@@ -17,10 +10,9 @@ podAnnotations: {}
 rbac:
   create: true
 
+resources: {}
+
 serviceAccount:
-  hook:
-    create: true
-    name:
   server:
     create: true
     name:
@@ -30,7 +22,7 @@ tolerations: []
 nodeSelector: {}
 
 ## Parameters for the ' default' Config resource
-## See https://heptio.github.io/ark/v0.8.1/config-definition
+## See https://heptio.github.io/ark/v0.9.0/config-definition
 configuration:
   persistentVolumeProvider: {}
   #  name:
@@ -52,6 +44,18 @@ configuration:
   scheduleSyncPeriod: 1m
   resourcePriorities: []
   restoreOnlyMode: false
+  # additional key/value pairs to be used as environment variables such as "AWS_CLUSTER_NAME: 'yourcluster.domain.tld'"
+  extraEnvVars: {}
+
+# Eg:
+# schedules:
+#   mybackup:
+#     schedule: "0 0 * * *"
+#     template:
+#       ttl: "240h"
+#       includedNamespaces:
+#        - foo
+schedules: {}
 
 credentials:
   existingSecret:
